@@ -195,5 +195,221 @@ void AllRecords() {
         printf("City: %s\n", AccountHolder[j].Address.City);
     }
 
+
+
+*******************************************************************************************************
+    ***************************************************************************************************
+    ****************************************************************************************************
+// forward declarations so functions can call each other
+void CalculateTotalAndAverage();
+void FindHighestAndLowest();
+void CountByCity();
+void DisplayFullNames();
+void CheckSubstring();
+
+// I keep these extern so this file knows about the main data
+extern struct AccountHolder AccountHolder[30];
+extern float balance[30];
+extern int totalAccounts;
+
+
+// Calculate Total and Average Balance
+void CalculateTotalAndAverage() {
+
+    float total = 0;
+    float average = 0;
+    int i;
+
+    printf("\n===== Calculate Total and Average Balance =====\n");
+
+    // just loop through all accounts and add up the balances
+    for (i = 0; i < totalAccounts; i++) {
+        total = total + balance[i];
+    }
+
+    // calculate average
+    if (totalAccounts > 0) {
+        average = total / totalAccounts;
+    } else {
+        printf("No accounts found.\n");
+        return;
+    }
+
+    printf("Total number of accounts : %d\n", totalAccounts);
+    printf("Total balance of all accounts : Rs. %.2f\n", total);
+    printf("Average balance per account  : Rs. %.2f\n", average);
+
+    printf("\n");
+}
+
+// Find Highest and Lowest Balance
+
+void FindHighestAndLowest() {
+
+    float highest, lowest;
+    int highIndex, lowIndex;
+    int i;
+
+    printf("\n===== Find Highest and Lowest Balance =====\n");
+
+    if (totalAccounts == 0) {
+        printf("No accounts found.\n");
+        return;
+    }
+
+    // start by assuming first account is both highest and lowest
+    highest = balance[0];
+    lowest = balance[0];
+    highIndex = 0;
+    lowIndex = 0;
+
+    // now check the rest
+    for (i = 1; i < totalAccounts; i++) {
+        if (balance[i] > highest) {
+            highest = balance[i];
+            highIndex = i;
+        }
+        if (balance[i] < lowest) {
+            lowest = balance[i];
+            lowIndex = i;
+        }
+    }
+
+    // print highest balance account details
+    printf("\nAccount with HIGHEST balance:\n");
+    printf("  Name    : %s %s\n", AccountHolder[highIndex].FirstName, AccountHolder[highIndex].LastName);
+    printf("  NIC     : %s\n", AccountHolder[highIndex].Nic);
+    printf("  Balance : Rs. %.2f\n", highest);
+
+    // print lowest balance account details
+    printf("\nAccount with LOWEST balance:\n");
+    printf("  Name    : %s %s\n", AccountHolder[lowIndex].FirstName, AccountHolder[lowIndex].LastName);
+    printf("  NIC     : %s\n", AccountHolder[lowIndex].Nic);
+    printf("  Balance : Rs. %.2f\n", lowest);
+
+    printf("\n");
+}
+
+
+// ============================================================
+// Function 8 - Count Records by City
+// ============================================================
+void CountByCity() {
+
+    char cityInput[40];
+    int count = 0;
+    int i;
+
+    printf("\n===== Count Records by City =====\n");
+    printf("Enter city name to search: ");
+    scanf("%s", cityInput);
+
+    // go through all accounts and check if city matches
+    for (i = 0; i < totalAccounts; i++) {
+
+        // using strcasecmp would be nicer but strcmp works fine too
+        // I'm using strcmp here, so user must type exact name
+        if (strcmp(AccountHolder[i].Address.City, cityInput) == 0) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        printf("No accounts found in city: %s\n", cityInput);
+    } else {
+        printf("Number of accounts in %s : %d\n", cityInput, count);
+
+        // also show who those accounts belong to
+        printf("\nAccount holders in %s:\n", cityInput);
+        for (i = 0; i < totalAccounts; i++) {
+            if (strcmp(AccountHolder[i].Address.City, cityInput) == 0) {
+                printf("  - %s %s  (NIC: %s)\n",
+                    AccountHolder[i].FirstName,
+                    AccountHolder[i].LastName,
+                    AccountHolder[i].Nic);
+            }
+        }
+    }
+
+    printf("\n");
+}
+
+
+// ============================================================
+// Function 9 - Display Concatenated Full Names
+// ============================================================
+void DisplayFullNames() {
+
+    char fullName[65]; // 30 + 1 space + 30 + null = 62, so 65 is safe
+    int i;
+
+    printf("\n===== Display Full Names (Concatenated) =====\n");
+    printf("%-5s  %-35s  %-15s\n", "No.", "Full Name", "City");
+    printf("------------------------------------------------------\n");
+
+    for (i = 0; i < totalAccounts; i++) {
+
+        // start with first name
+        strcpy(fullName, AccountHolder[i].FirstName);
+
+        // add a space between first and last name
+        strcat(fullName, " ");
+
+        // now add last name
+        strcat(fullName, AccountHolder[i].LastName);
+
+        printf("%-5d  %-35s  %-15s\n", i + 1, fullName, AccountHolder[i].Address.City);
+    }
+
+    printf("\n");
+}
+
+
+// ============================================================
+// Function 10 - Check if a Substring Exists in Any Name
+// ============================================================
+void CheckSubstring() {
+
+    char searchWord[30];
+    char fullName[65];
+    int found = 0;
+    int i;
+
+    printf("\n===== Check Name Substring Existence =====\n");
+    printf("Enter a name or part of a name to search: ");
+    scanf("%s", searchWord);
+
+    printf("\nSearching for \"%s\" in all account holder names...\n\n", searchWord);
+
+    for (i = 0; i < totalAccounts; i++) {
+
+        // build the full name first so we can search in both first and last name
+        strcpy(fullName, AccountHolder[i].FirstName);
+        strcat(fullName, " ");
+        strcat(fullName, AccountHolder[i].LastName);
+
+        // strstr returns a pointer if found, NULL if not found
+        if (strstr(fullName, searchWord) != NULL) {
+            printf("  Found in record %d : %s  (NIC: %s, City: %s)\n",
+                i + 1,
+                fullName,
+                AccountHolder[i].Nic,
+                AccountHolder[i].Address.City);
+            found++;
+        }
+    }
+
+    if (found == 0) {
+        printf("  No account holder found with \"%s\" in their name.\n", searchWord);
+    } else {
+        printf("\nTotal matches found: %d\n", found);
+    }
+
+    printf("\n");
+}
+
+
+
+    
     main(); // back to main menu
 }
